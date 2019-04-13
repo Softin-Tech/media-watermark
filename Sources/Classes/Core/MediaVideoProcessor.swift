@@ -15,7 +15,7 @@ let kMediaContentTimeValue: Int64 = 1
 let kMediaContentTimeScale: Int32 = 30
 
 extension MediaProcessor {
-    func processVideoWithElements(item: MediaItem, completion: @escaping ProcessCompletionHandler) {
+    func processVideoWithElements(item: MediaItem, progressHandler: ProcessProgressHandler? = nil, completion: @escaping ProcessCompletionHandler) {
         let mixComposition = AVMutableComposition()
         let compositionVideoTrack = mixComposition.addMutableTrack(withMediaType: AVMediaType.video, preferredTrackID: kCMPersistentTrackID_Invalid)
         let clipVideoTrack = item.sourceAsset.tracks(withMediaType: AVMediaType.video).first
@@ -78,14 +78,28 @@ extension MediaProcessor {
         
         exportSession?.exportAsynchronously(completionHandler: {
             if exportSession?.status == AVAssetExportSessionStatus.completed {
+                progressHandler?(1.0)
                 completion(MediaProcessResult(processedUrl: processedUrl, image: nil), nil)
             } else {
                 completion(MediaProcessResult(processedUrl: nil, image: nil), exportSession?.error)
             }
         })
+        
+        if let exportSession = exportSession, let progressHandler = progressHandler {
+            self.callbackProgress(for: exportSession, progressHandler: progressHandler)
+        }
     }
     
     // MARK: - private
+    private func callbackProgress(for exportSession: AVAssetExportSession, progressHandler: @escaping ProcessProgressHandler) {
+        if exportSession.status == .exporting {
+            progressHandler(exportSession.progress)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.callbackProgress(for: exportSession, progressHandler: progressHandler)
+            }
+        }
+    }
+    
     private func processAndAddElements(item: MediaItem, layer: CALayer) {
         for element in item.mediaElements {
             var elementLayer: CALayer! = nil

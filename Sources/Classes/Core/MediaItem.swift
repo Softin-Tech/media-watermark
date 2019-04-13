@@ -19,6 +19,7 @@ public struct MediaProcessResult {
     public var image: UIImage?
 }
 
+public typealias ProcessProgressHandler = ((_ progress: Float) -> ())
 public typealias ProcessCompletionHandler = ((_ result: MediaProcessResult, _ error: Error?) -> ())
 
 public class MediaItem {
