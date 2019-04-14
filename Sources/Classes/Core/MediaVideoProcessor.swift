@@ -87,19 +87,27 @@ extension MediaProcessor {
                     completion(MediaProcessResult(processedUrl: nil, image: nil), exportSession?.error)
                 }
             }
+            
+            self.videoExportSession = nil
         })
         
-        if let exportSession = exportSession, let progressHandler = progressHandler {
-            self.callbackProgress(for: exportSession, progressHandler: progressHandler)
+        self.videoExportSession = exportSession
+        
+        if exportSession != nil, let progressHandler = progressHandler {
+            self.callbackProgress(progressHandler: progressHandler)
         }
     }
     
     // MARK: - private
-    private func callbackProgress(for exportSession: AVAssetExportSession, progressHandler: @escaping ProcessProgressHandler) {
+    private func callbackProgress(progressHandler: @escaping ProcessProgressHandler) {
+        guard let exportSession = self.videoExportSession else {
+            return
+        }
+        
         if [.exporting, .waiting].contains(exportSession.status)  {
             progressHandler(exportSession.progress)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                self.callbackProgress(for: exportSession, progressHandler: progressHandler)
+                self.callbackProgress(progressHandler: progressHandler)
             }
         }
     }
