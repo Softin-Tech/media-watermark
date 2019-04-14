@@ -71,7 +71,7 @@ extension MediaProcessor {
         let processedUrl = processedMoviePath()
         clearTemporaryData(url: processedUrl, completion: completion)
         
-        let exportSession = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetHighestQuality)
+        let exportSession = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetPassthrough)
         exportSession?.videoComposition = videoComposition
         exportSession?.outputURL = processedUrl
         exportSession?.outputFileType = AVFileType.mp4
