@@ -78,10 +78,14 @@ extension MediaProcessor {
         
         exportSession?.exportAsynchronously(completionHandler: {
             if exportSession?.status == AVAssetExportSessionStatus.completed {
-                progressHandler?(1.0)
-                completion(MediaProcessResult(processedUrl: processedUrl, image: nil), nil)
+                DispatchQueue.main.async {
+                    progressHandler?(1.0)
+                    completion(MediaProcessResult(processedUrl: processedUrl, image: nil), nil)
+                }
             } else {
-                completion(MediaProcessResult(processedUrl: nil, image: nil), exportSession?.error)
+                DispatchQueue.main.async {
+                    completion(MediaProcessResult(processedUrl: nil, image: nil), exportSession?.error)
+                }
             }
         })
         
@@ -92,7 +96,7 @@ extension MediaProcessor {
     
     // MARK: - private
     private func callbackProgress(for exportSession: AVAssetExportSession, progressHandler: @escaping ProcessProgressHandler) {
-        if exportSession.status == .exporting {
+        if [.exporting, .waiting].contains(exportSession.status)  {
             progressHandler(exportSession.progress)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 self.callbackProgress(for: exportSession, progressHandler: progressHandler)
